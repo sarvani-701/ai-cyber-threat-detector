@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Cyber Threat Detector</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="container">
+  <h1>🔐 AI Cyber Threat Detector</h1>
+  <p class="subtitle">Analyze suspicious profiles & messages instantly</p>
+
+  <textarea id="message" placeholder="Enter suspicious message..."></textarea>
+
+  <div class="inputs">
+    <input id="followers" placeholder="Followers">
+    <input id="following" placeholder="Following">
+    <input id="posts" placeholder="Posts">
+  </div>
+
+  <button onclick="analyze()">Analyze</button>
+  <button onclick="fillDemo()" class="demo-btn">Try Demo Case</button>
+
+  <div id="loading" class="hidden">🔍 Analyzing...</div>
+
+  <div id="result" class="result hidden"></div>
+</div>
+
+<script src="script.js"></script>
+
+</body>
+</html>
