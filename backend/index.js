@@ -121,6 +121,145 @@
 
 // app.listen(5000, () => console.log("🚀 Backend running on port 5000"));
 
+// import express from "express";
+// import cors from "cors";
+// import fetch from "node-fetch";
+// import dotenv from "dotenv";
+
+// dotenv.config();
+
+// const app = express();
+// app.use(cors());
+// app.use(express.json());
+
+// const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+
+// // 🔍 PROFILE ANALYSIS
+// function calculateProfileRisk(profile = {}) {
+//   let score = 0;
+//   let reasons = [];
+
+//   const followers = profile.followers || 0;
+//   const following = profile.following || 0;
+//   const posts = profile.posts || 0;
+
+//   if (followers < 50) {
+//     score += 20;
+//     reasons.push("Low followers");
+//   }
+
+//   if (following > followers * 2) {
+//     score += 20;
+//     reasons.push("High following ratio");
+//   }
+
+//   if (posts < 5) {
+//     score += 10;
+//     reasons.push("Low activity");
+//   }
+
+//   return { score, reasons };
+// }
+
+// // 🤖 GEMINI ANALYSIS FUNCTION
+// async function analyzeWithGemini(message) {
+//   try {
+//     const res = await fetch(
+//       `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${GEMINI_API_KEY}`,
+//       {
+//         method: "POST",
+//         headers: {
+//           "Content-Type": "application/json"
+//         },
+//         body: JSON.stringify({
+//           contents: [
+//             {
+//               parts: [
+//                 {
+//                   text: `Analyze this message for cyber threat, stalking, or harassment.
+
+// Return ONLY JSON:
+// {
+//   "score": number (0-50),
+//   "reason": "short explanation"
+// }
+
+// Message: "${message}"`
+//                 }
+//               ]
+//             }
+//           ]
+//         })
+//       }
+//     );
+
+//     const data = await res.json();
+
+//     const text = data.candidates[0].content.parts[0].text;
+
+//     // Extract JSON safely
+//     const match = text.match(/\{[\s\S]*\}/);
+//     if (!match) throw new Error("Invalid JSON");
+
+//     return JSON.parse(match[0]);
+
+//   } catch (err) {
+//     console.log("⚠️ Gemini failed, using fallback");
+
+//     if (
+//       message.toLowerCase().includes("kill") ||
+//       message.toLowerCase().includes("track") ||
+//       message.toLowerCase().includes("follow")
+//     ) {
+//       return {
+//         score: 40,
+//         reason: "Threatening or stalking language detected"
+//       };
+//     }
+
+//     return {
+//       score: 10,
+//       reason: "Possibly suspicious message"
+//     };
+//   }
+// }
+
+// // 🚨 MAIN API
+// app.post("/analyze", async (req, res) => {
+//   const message = req.body.message || "";
+//   const profile = req.body.profile || {
+//     followers: 0,
+//     following: 0,
+//     posts: 0
+//   };
+
+//   const profileData = calculateProfileRisk(profile);
+
+//   // 🔥 GEMINI CALL
+//   const aiResult = await analyzeWithGemini(message);
+
+//   let totalScore = profileData.score + (aiResult.score || 0);
+//   if (totalScore > 100) totalScore = 100;
+
+//   let level = "Safe";
+//   if (totalScore > 70) level = "Dangerous";
+//   else if (totalScore > 40) level = "Suspicious";
+
+//   res.json({
+//     score: totalScore,
+//     level,
+//     explanation: [...profileData.reasons, aiResult.reason].join(", "),
+//     action:
+//       level === "Dangerous"
+//         ? "Block & Report"
+//         : level === "Suspicious"
+//         ? "Be Cautious"
+//         : "Safe"
+//   });
+// });
+
+// app.listen(5000, () => console.log("🚀 Backend running on port 5000"));
+
 import express from "express";
 import cors from "cors";
 import fetch from "node-fetch";
@@ -134,7 +273,7 @@ app.use(express.json());
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
-// 🔍 PROFILE ANALYSIS
+// 🔍 PROFILE ANALYSIS (REDUCED WEIGHT)
 function calculateProfileRisk(profile = {}) {
   let score = 0;
   let reasons = [];
@@ -143,25 +282,25 @@ function calculateProfileRisk(profile = {}) {
   const following = profile.following || 0;
   const posts = profile.posts || 0;
 
-  if (followers < 50) {
-    score += 20;
+  if (followers < 10) {
+    score += 5;
     reasons.push("Low followers");
   }
 
-  if (following > followers * 2) {
-    score += 20;
+  if (following > followers * 3) {
+    score += 5;
     reasons.push("High following ratio");
   }
 
   if (posts < 5) {
-    score += 10;
+    score += 3;
     reasons.push("Low activity");
   }
 
   return { score, reasons };
 }
 
-// 🤖 GEMINI ANALYSIS FUNCTION
+// 🤖 GEMINI AI
 async function analyzeWithGemini(message) {
   try {
     const res = await fetch(
@@ -176,7 +315,7 @@ async function analyzeWithGemini(message) {
             {
               parts: [
                 {
-                  text: `Analyze this message for cyber threat, stalking, or harassment.
+                  text: `Analyze this message for cyber threat.
 
 Return ONLY JSON:
 {
@@ -194,51 +333,44 @@ Message: "${message}"`
     );
 
     const data = await res.json();
-
     const text = data.candidates[0].content.parts[0].text;
 
-    // Extract JSON safely
     const match = text.match(/\{[\s\S]*\}/);
     if (!match) throw new Error("Invalid JSON");
 
     return JSON.parse(match[0]);
 
   } catch (err) {
-    console.log("⚠️ Gemini failed, using fallback");
+    console.log("⚠️ Gemini failed, fallback used");
 
     if (
       message.toLowerCase().includes("kill") ||
-      message.toLowerCase().includes("track") ||
-      message.toLowerCase().includes("follow")
+      message.toLowerCase().includes("track")
     ) {
-      return {
-        score: 40,
-        reason: "Threatening or stalking language detected"
-      };
+      return { score: 40, reason: "Threatening language detected" };
     }
 
-    return {
-      score: 10,
-      reason: "Possibly suspicious message"
-    };
+    return { score: 5, reason: "Likely safe message" };
   }
 }
 
 // 🚨 MAIN API
 app.post("/analyze", async (req, res) => {
   const message = req.body.message || "";
-  const profile = req.body.profile || {
-    followers: 0,
-    following: 0,
-    posts: 0
-  };
+  const profile = req.body.profile || {};
 
   const profileData = calculateProfileRisk(profile);
-
-  // 🔥 GEMINI CALL
   const aiResult = await analyzeWithGemini(message);
 
-  let totalScore = profileData.score + (aiResult.score || 0);
+  // 🔥 BALANCED SCORE
+  let totalScore = aiResult.score + profileData.score;
+
+  // reduce impact for short harmless text
+  if (message.length < 10) {
+    totalScore -= 5;
+  }
+
+  if (totalScore < 0) totalScore = 0;
   if (totalScore > 100) totalScore = 100;
 
   let level = "Safe";

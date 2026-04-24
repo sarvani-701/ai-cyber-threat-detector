@@ -34,10 +34,12 @@ async function analyze() {
     resultDiv.className = `result ${colorClass}`;
 
     resultDiv.innerHTML = `
-      <h2 style="margin-bottom:5px;">${data.level.toUpperCase()}</h2>
+      <h2>${data.level}</h2>
       <h3>Risk Score: ${data.score}%</h3>
+
       <p><b>Reason:</b><br>${data.explanation}</p>
-      <p><b>Action:</b> ${data.action}</p>
+
+      <p><b>Suggested Action:</b><br>${data.action}</p>
     `;
 
   } catch (error) {
@@ -50,10 +52,11 @@ async function analyze() {
       <p>Something went wrong. Check backend or API.</p>
     `;
   }
+
   resultDiv.scrollIntoView({ behavior: "smooth" });
 }
 
-// 🎯 DEMO BUTTON FUNCTION
+// 🎯 DEMO BUTTON
 function fillDemo() {
   document.getElementById("message").value = "I will find you and track you";
   document.getElementById("followers").value = 5;
